@@ -3,58 +3,68 @@ import React from 'react'
 import RadarChart from 'react-svg-radar-chart';
 import 'react-svg-radar-chart/build/css/index.css'
 
-function Plot({genres: genresCount, total}) {
+function Plot({genres, total, loading}) {
 
-	const [genres, setGenres] = React.useState(genresCount)
+	const [active, setActive] = React.useState(Object.fromEntries(Object.entries(genres).map(([key, value]) => ([key,true]))))
 	const [data, setData] = React.useState({})
 	const [captions, setCaptions] = React.useState({})
 
 	React.useEffect(() => {
+		const max = Math.max(
+			...Object.entries(genres)
+			.filter(item => active[item[0]])
+			.map(item => item[1].count))
+
 		setData(
 			Object.entries(genres)
-			.filter(([key, value]) => value.show)
+			.filter(([key, value]) => active[key])
 			.reduce((previous, [key, value]) => {
 				var next = previous
-				next[key] = parseInt(value.count) / parseInt(total)
+				next[key] = value.count / max
 				return next
 			}, {})
 		)
-	}, [genres, total])
+	}, [active, genres, total])
 
 	React.useEffect(() => {
 		setCaptions(
 			Object.entries(genres)
-			.filter(([key, value]) => value.show)
+			.filter(([key, value]) => active[key])
 			.reduce((previous, [key, value]) => {
 				var next = previous
 				next[key] = value.name
 				return next
 			}, {})
 		)
-	}, [genres])
+	}, [active, genres])
 
 	function onChange (e) {
-		var newGenres=Object.assign({}, genres);
-		newGenres[e.target.value].show=!genres[e.target.value].show
-		setGenres(newGenres)
+		var newActive=Object.assign({}, active);
+		newActive[e.target.value]=!active[e.target.value]
+		setActive(newActive)
 	}
 
 	return (
 		<div className="plot">
 
 			 <form onChange={onChange}>
+				{loading ? 'Loading...' : null}
 				{total} traccie analizzate
+				<br/>
+				<br/>
+				La somma potrebbe non essere uguale: alcune traccie hanno più di un genere e per ora contano come traccie separate
+
 				{Object.entries(genres)
-					.map(([key, value]) => (
+				.map(([key, value]) => (
 					<p key={key}>
 						<input
 							id={key}
 							name={key}
 							value={key}
 							type="checkbox"
-							defaultChecked
+							checked={active[key]}
 							/>
-						<label htmlFor={key}>{value.name}</label><br/>
+						<label htmlFor={key}>{value.name} ({value.count})</label><br/>
 					</p>
 				))}
 			</form>

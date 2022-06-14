@@ -1,12 +1,10 @@
 import React from 'react'
 import {WithDeezerToken} from './TokenProvider'
-import ParsePlaylist from './ParsePlaylist'
 
-function Parser ({accessToken}) {
+function Parser ({accessToken, setPlaylistId}) {
 
 	const [playlists, setPlaylists] = React.useState()
 	const [playlistsLeft, setPlaylistsLeft] = React.useState()
-	const [playlistId, setPlaylistId] = React.useState()
 
 	React.useEffect(() => {
 		fetch('/deezer/user/me/playlists?access_token='+accessToken)
@@ -28,9 +26,6 @@ function Parser ({accessToken}) {
 			setPlaylists([...playlists, ...data])
 		})
 	}
-
-	if (playlistId)
-		return <ParsePlaylist playlistId={playlistId}/>
 
 	if(playlists)
 		return (

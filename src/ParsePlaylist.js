@@ -8,13 +8,16 @@ function Parser({playlistId, accessToken}) {
 	const [done, setDone] = React.useState(false)
 
 	React.useEffect(() => {
+		let counter = 0;
 
 		function callBack ({data, total}) {
-			const missingTracks = total - data.length - tracks.length
+			const missingTracks = total - data.length - counter
+			counter+=data.length
 			setTracks(tracks => ([...tracks, ...data]))
 
 			if (missingTracks > 0)
-				return fetch('/deezer/playlist/'+playlistId+'/tracks?index='+(total-missingTracks)+'&access_token='+accessToken)
+				return new Promise(resolve => setTimeout(resolve, 100))		//Deezer API limit is 50 requests / 5 s ---> 1 every 100 ms should be fine
+				.then(() => fetch('/deezer/playlist/'+playlistId+'/tracks?index='+counter+'&access_token='+accessToken))
 				.then(res => res.json())
 				.then(callBack)
 			else
